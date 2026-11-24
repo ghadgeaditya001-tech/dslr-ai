@@ -96,7 +96,7 @@ export default function DSLRCameraApp() {
     const nextState = !flashOn;
     setFlashOn(nextState);
     try {
-      const track = streamRef.current?.getVideoTracks();
+      const track = streamRef.current?.getVideoTracks().at(0);
       if (track && 'applyConstraints' in track) {
         await track.applyConstraints({
           advanced: [{ torch: nextState } as any],
@@ -147,7 +147,7 @@ export default function DSLRCameraApp() {
         return;
       }
 
-      const base64Data = compressedDataUrl.split(',');
+      const base64Data = compressedDataUrl.split(',').at(1) || '';
       setStatusText('Applying 85mm f/1.4 lens & studio lighting...');
 
       const response = await fetch(
@@ -182,7 +182,7 @@ export default function DSLRCameraApp() {
       }
 
       setStatusText('Finalizing natural skin tones & saving...');
-      const parts = data?.candidates?.?.content?.parts || [];
+      const parts = data?.candidates?.at(0)?.content?.parts || [];
       const imagePart = parts.find((p: any) => p.inlineData?.data);
 
       if (!imagePart) {
@@ -364,15 +364,16 @@ export default function DSLRCameraApp() {
 
       <footer className="z-20 px-6 pb-8 pt-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex items-center justify-between">
         <button
-          onClick={() => history && setActivePhoto(history)}
+          onClick={() => history.at(0) && setActivePhoto(history.at(0)!)}
           className="w-12 h-12 rounded-xl overflow-hidden border-2 border-zinc-700 bg-zinc-900 flex items-center justify-center"
         >
-          {history ? (
-            <img src={history.enhanced} alt="Last shot" className="w-full h-full object-cover" />
+          {history.at(0) ? (
+            <img src={history.at(0)?.enhanced} alt="Last shot" className="w-full h-full object-cover" />
           ) : (
             <span className="text-[10px] text-zinc-500">GALLERY</span>
           )}
         </button>
+        
 
         <button
           onClick={handleCapture}
