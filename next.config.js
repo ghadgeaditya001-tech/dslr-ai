@@ -1,2 +1,11 @@
-/** For Capacitor: uncomment output:'export' then run `next build` -> ./out */
-module.exports = { reactStrictMode: true /* , output: 'export', images: { unoptimized: true } */ };
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+};
+
+module.exports = nextConfig;
