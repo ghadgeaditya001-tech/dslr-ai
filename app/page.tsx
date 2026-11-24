@@ -11,7 +11,6 @@ interface PhotoItem {
   enhanced: string;
   timestamp: number;
 }
-
 export default function DSLRCameraApp() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -39,8 +38,7 @@ export default function DSLRCameraApp() {
   const [activePhoto, setActivePhoto] = useState<PhotoItem | null>(null);
   const [sliderPos, setSliderPos] = useState(50);
   const [history, setHistory] = useState<PhotoItem[]>([]);
-
-  useEffect(() => {
+    useEffect(() => {
     try {
       const savedKey = localStorage.getItem('dslr_gemini_key') || '';
       const savedModel = localStorage.getItem('dslr_gemini_model') || 'gemini-3.1-flash-image';
@@ -109,7 +107,7 @@ export default function DSLRCameraApp() {
     try {
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `DSLR_AI_${Date.now()}.jpg`;
+      link.download = 'DSLR_AI_' + Date.now() + '.jpg';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -118,7 +116,7 @@ export default function DSLRCameraApp() {
       showToast('Tap "Save to Gallery" to download');
     }
   };
-      const enhanceWithGemini = async (compressedDataUrl: string) => {
+    const enhanceWithGemini = async (compressedDataUrl: string) => {
     setIsProcessing(true);
     setErrorMsg(null);
     setStatusText('Sending to Gemini 3.1 Vision...');
@@ -150,35 +148,38 @@ export default function DSLRCameraApp() {
       const base64Data = compressedDataUrl.split(',').at(1) || '';
       setStatusText('Applying 85mm f/1.4 lens & studio lighting...');
 
-      const response = await fetch(
-        `https://googleapis.com{modelName}:generateContent?key=${apiKey.trim()}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: DSLR_PROMPT },
-                  {
-                    inlineData: {
-                      mimeType: 'image/jpeg',
-                      data: base64Data,
-                    },
+      const apiUrl =
+        'https://googleapis.com' +
+        modelName.trim() +
+        ':generateContent?key=' +
+        encodeURIComponent(apiKey.trim());
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: DSLR_PROMPT },
+                {
+                  inlineData: {
+                    mimeType: 'image/jpeg',
+                    data: base64Data,
                   },
-                ],
-              },
-            ],
-            generationConfig: {
-              responseModalities: ['IMAGE'],
+                },
+              ],
             },
-          }),
-        }
-      );
+          ],
+          generationConfig: {
+            responseModalities: ['IMAGE'],
+          },
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data?.error?.message || `API Error (${response.status})`);
+        throw new Error(data?.error?.message || 'API Error (' + response.status + ')');
       }
 
       setStatusText('Finalizing natural skin tones & saving...');
@@ -190,7 +191,7 @@ export default function DSLRCameraApp() {
       }
 
       const outMime = imagePart.inlineData.mimeType || 'image/jpeg';
-      const enhancedDataUrl = `data:${outMime};base64,${imagePart.inlineData.data}`;
+      const enhancedDataUrl = 'data:' + outMime + ';base64,' + imagePart.inlineData.data;
 
       const newPhoto: PhotoItem = {
         id: String(Date.now()),
@@ -212,8 +213,7 @@ export default function DSLRCameraApp() {
       setIsProcessing(false);
     }
   };
-
-  const handleCapture = async () => {
+    const handleCapture = async () => {
     if (!videoRef.current || !canvasRef.current || isProcessing) return;
 
     setShutterFlash(true);
@@ -269,7 +269,8 @@ export default function DSLRCameraApp() {
     setShowSettings(false);
     showToast('Settings Saved ✓');
   };
-      return (
+
+  return (
     <main className="relative h-screen w-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between">
       <canvas ref={canvasRef} className="hidden" />
 
@@ -284,22 +285,24 @@ export default function DSLRCameraApp() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleFlash}
-            className={`px-2.5 py-1.5 rounded-full text-xs font-medium border ${
-              flashOn
+            className={
+              'px-2.5 py-1.5 rounded-full text-xs font-medium border ' +
+              (flashOn
                 ? 'bg-amber-400 text-black border-amber-400'
-                : 'bg-zinc-900/80 text-zinc-300 border-zinc-700'
-            }`}
+                : 'bg-zinc-900/80 text-zinc-300 border-zinc-700')
+            }
           >
             ⚡ {flashOn ? 'ON' : 'OFF'}
           </button>
 
           <button
             onClick={() => setShowGrid(!showGrid)}
-            className={`px-2.5 py-1.5 rounded-full text-xs font-medium border ${
-              showGrid
+            className={
+              'px-2.5 py-1.5 rounded-full text-xs font-medium border ' +
+              (showGrid
                 ? 'bg-white text-black border-white'
-                : 'bg-zinc-900/80 text-zinc-300 border-zinc-700'
-            }`}
+                : 'bg-zinc-900/80 text-zinc-300 border-zinc-700')
+            }
           >
             # Grid
           </button>
@@ -313,8 +316,7 @@ export default function DSLRCameraApp() {
           </button>
         </div>
       </header>
-
-      <div
+            <div
         onClick={handleTapFocus}
         className="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden"
       >
@@ -334,7 +336,7 @@ export default function DSLRCameraApp() {
             autoPlay
             playsInline
             muted
-            className={`h-full w-full object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
+            className={'h-full w-full object-cover ' + (facingMode === 'user' ? 'scale-x-[-1]' : '')}
           />
         )}
 
@@ -373,7 +375,6 @@ export default function DSLRCameraApp() {
             <span className="text-[10px] text-zinc-500">GALLERY</span>
           )}
         </button>
-        
 
         <button
           onClick={handleCapture}
@@ -392,7 +393,8 @@ export default function DSLRCameraApp() {
           🔄
         </button>
       </footer>
-              {isProcessing && currentRaw && (
+
+      {isProcessing && currentRaw && (
         <div className="fixed inset-0 z-40 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6">
           <div className="relative w-64 h-80 rounded-2xl overflow-hidden border border-amber-500/50 shadow-2xl mb-6">
             <img src={currentRaw} alt="Processing" className="w-full h-full object-cover opacity-70" />
@@ -446,7 +448,7 @@ export default function DSLRCameraApp() {
               className="absolute inset-0 w-full h-full object-contain bg-zinc-950"
             />
             <div
-              style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+              style={{ clipPath: 'inset(0 ' + (100 - sliderPos) + '% 0 0)' }}
               className="absolute inset-0"
             >
               <img
@@ -457,7 +459,7 @@ export default function DSLRCameraApp() {
             </div>
 
             <div
-              style={{ left: `${sliderPos}%` }}
+              style={{ left: sliderPos + '%' }}
               className="pointer-events-none absolute inset-y-0 w-0.5 bg-amber-400 shadow"
             />
 
@@ -553,19 +555,18 @@ export default function DSLRCameraApp() {
             <button
               onClick={saveSettings}
               className="w-full py-3 bg-amber-500 text-black font-bold rounded-xl text-sm"
-            >
-              Save Settings
-            </button>
-          </div>
-        </div>
-      )}
+>
+Save Settings
 
-      {toastMsg && (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-emerald-500 text-black font-bold text-xs rounded-full shadow-lg">
-          {toastMsg}
-        </div>
-      )}
-    </main>
-  );
-      }
-          
+
+
+)}
+{toastMsg && (
+
+{toastMsg}
+
+)}
+
+);
+              }
+              
