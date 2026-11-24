@@ -269,8 +269,7 @@ export default function DSLRCameraApp() {
     setShowSettings(false);
     showToast('Settings Saved ✓');
   };
-
-  return (
+      return (
     <main className="relative h-screen w-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between">
       <canvas ref={canvasRef} className="hidden" />
 
@@ -392,52 +391,180 @@ export default function DSLRCameraApp() {
           🔄
         </button>
       </footer>
-
-      {isProcessing && currentRaw && (
+              {isProcessing && currentRaw && (
         <div className="fixed inset-0 z-40 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6">
           <div className="relative w-64 h-80 rounded-2xl overflow-hidden border border-amber-500/50 shadow-2xl mb-6">
             <img src={currentRaw} alt="Processing" className="w-full h-full object-cover opacity-70" />
-        <input
-type="password"
-value={apiKey}
-onChange={(e) => setApiKey(e.target.value)}
-placeholder="AIzaSy..."
-className="w-full px-3 py-2.5 bg-black border border-zinc-700 rounded-xl text-sm text-white focus:border-amber-400 outline-none"
-/>
-Gemini Image Model
-<select
-value={modelName}
-onChange={(e) => setModelName(e.target.value)}
-className="w-full px-3 py-2.5 bg-black border border-zinc-700 rounded-xl text-sm text-white"
->
-gemini-3.1-flash-image (Recommended)
-gemini-nano-banana-2.1
-gemini-3-pro-image
+            <div className="absolute inset-x-0 top-0 h-1 bg-amber-400 animate-bounce" />
+          </div>
+          <p className="text-amber-400 font-semibold text-base mb-1">AI DSLR Processing...</p>
+          <p className="text-zinc-300 text-xs text-center">{statusText}</p>
+        </div>
+      )}
 
-Auto-Save to Gallery
-<input
-type="checkbox"
-checked={autoSave}
-onChange={(e) => setAutoSave(e.target.checked)}
-className="w-4 h-4 accent-amber-400"
-/>
-Demo Mode (Test without API Key)
-<input
-type="checkbox"
-checked={demoMode}
-onChange={(e) => setDemoMode(e.target.checked)}
-className="w-4 h-4 accent-amber-400"
-/>
-Save Settings
+      {errorMsg && !isProcessing && (
+        <div className="fixed inset-x-4 top-20 z-50 bg-red-950/95 border border-red-500 rounded-xl p-4 shadow-xl">
+          <p className="text-xs text-red-200 mb-3">{errorMsg}</p>
+          <div className="flex gap-2">
+            {currentRaw && (
+              <button
+                onClick={() => enhanceWithGemini(currentRaw)}
+                className="px-3 py-1.5 bg-amber-500 text-black text-xs font-bold rounded-lg"
+              >
+                Retry Enhancement
+              </button>
+            )}
+            <button
+              onClick={() => setErrorMsg(null)}
+              className="px-3 py-1.5 bg-zinc-800 text-white text-xs rounded-lg"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
+      {activePhoto && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col justify-between p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+              DSLR 85mm f/1.4 Output
+            </span>
+            <button
+              onClick={() => setActivePhoto(null)}
+              className="px-3 py-1.5 bg-zinc-800 rounded-lg text-xs font-semibold"
+            >
+              ✕ Back to Camera
+            </button>
+          </div>
 
+          <div className="relative my-4 flex-1 w-full max-w-md mx-auto rounded-2xl overflow-hidden border border-zinc-800">
+            <img
+              src={activePhoto.enhanced}
+              alt="Enhanced DSLR"
+              className="absolute inset-0 w-full h-full object-contain bg-zinc-950"
+            />
+            <div
+              style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+              className="absolute inset-0"
+            >
+              <img
+                src={activePhoto.original}
+                alt="Original Raw"
+                className="w-full h-full object-contain bg-zinc-950"
+              />
+            </div>
 
-)}
-{toastMsg && (
+            <div
+              style={{ left: `${sliderPos}%` }}
+              className="pointer-events-none absolute inset-y-0 w-0.5 bg-amber-400 shadow"
+            />
 
-{toastMsg}
+            <span className="absolute top-3 left-3 px-2 py-0.5 bg-black/70 text-[10px] rounded">
+              BEFORE
+            </span>
+            <span className="absolute top-3 right-3 px-2 py-0.5 bg-amber-500 text-black font-bold text-[10px] rounded">
+              AFTER DSLR
+            </span>
+          </div>
 
-)}
+          <div className="max-w-md w-full mx-auto space-y-3 pb-4">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={sliderPos}
+              onChange={(e) => setSliderPos(Number(e.target.value))}
+              className="w-full accent-amber-400"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => downloadImage(activePhoto.enhanced)}
+                className="flex-1 py-3 bg-amber-500 text-black font-bold rounded-xl text-sm"
+              >
+                ⬇ Save to Gallery
+              </button>
+              <button
+                onClick={() => setActivePhoto(null)}
+                className="flex-1 py-3 bg-zinc-800 text-white font-semibold rounded-xl text-sm"
+              >
+                Take Another
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-);
-  }
+      {showSettings && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+          <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-white">DSLR AI Settings</h2>
+              <button onClick={() => setShowSettings(false)} className="text-zinc-400 text-sm">
+                ✕
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs text-zinc-400 mb-1">Google Gemini API Key</label>
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full px-3 py-2.5 bg-black border border-zinc-700 rounded-xl text-sm text-white focus:border-amber-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-zinc-400 mb-1">Gemini Image Model</label>
+              <select
+                value={modelName}
+                onChange={(e) => setModelName(e.target.value)}
+                className="w-full px-3 py-2.5 bg-black border border-zinc-700 rounded-xl text-sm text-white"
+              >
+                <option value="gemini-3.1-flash-image">gemini-3.1-flash-image (Recommended)</option>
+                <option value="gemini-nano-banana-2.1">gemini-nano-banana-2.1</option>
+                <option value="gemini-3-pro-image">gemini-3-pro-image</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-zinc-300">Auto-Save to Gallery</span>
+              <input
+                type="checkbox"
+                checked={autoSave}
+                onChange={(e) => setAutoSave(e.target.checked)}
+                className="w-4 h-4 accent-amber-400"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-300">Demo Mode (Test without API Key)</span>
+              <input
+                type="checkbox"
+                checked={demoMode}
+                onChange={(e) => setDemoMode(e.target.checked)}
+                className="w-4 h-4 accent-amber-400"
+              />
+            </div>
+
+            <button
+              onClick={saveSettings}
+              className="w-full py-3 bg-amber-500 text-black font-bold rounded-xl text-sm"
+            >
+              Save Settings
+            </button>
+          </div>
+        </div>
+      )}
+
+      {toastMsg && (
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-emerald-500 text-black font-bold text-xs rounded-full shadow-lg">
+          {toastMsg}
+        </div>
+      )}
+    </main>
+  );
+      }
+          
